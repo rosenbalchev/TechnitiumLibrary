@@ -50,10 +50,17 @@ jobs:
 
     strategy:
       matrix:
-        configuration: [Debug, Release]
+        include:
+          - os: windows-latest
+            configuration: Debug
+          - os: windows-latest
+            configuration: Release
+          - os: linux-arm
+            configuration: Debug
+          - os: linux-arm
+            configuration: Release
 
-    runs-on: ubuntu-latest  # For a list of available runner types, refer to
-                             # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
+    runs-on: ${{ matrix.os }}  # run on the OS/label from the matrix
 
     env:
       Solution_Name: TechnitiumLibrary.sln                         # Replace with your solution name, i.e. MyWpfApp.sln.
@@ -71,7 +78,19 @@ jobs:
       with:
         dotnet-version: 10.0.x
 
-    - name: Restore the application
+    - name: Restore and build (Linux)
+      if: matrix.os == 'linux-arm'
+      run: |
+        # Build every project except the Windows-only firewall project
+        for proj in $(git ls-files '*.csproj'); do
+          if [ "$proj" != "TechnitiumLibrary.Net.Firewall/TechnitiumLibrary.Net.Firewall.csproj" ]; then
+            dotnet restore "$proj"
+            dotnet build "$proj" --configuration ${{ matrix.configuration }}
+          fi
+        done
+
+    - name: Restore and build (Windows)
+      if: matrix.os == 'windows-latest'
       run: dotnet restore ${{ env.Solution_Name }} && dotnet build ${{ env.Solution_Name }} --configuration ${{ matrix.configuration }}
 
     # Execute all unit tests in the solution
