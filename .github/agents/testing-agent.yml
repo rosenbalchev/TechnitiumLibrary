@@ -1,0 +1,14 @@
+name: testing-agent
+description: "Copilot testing agent to run unit tests, integration tests and produce test reports."
+runs_on: ubuntu-latest
+setup_steps_workflow: .github/workflows/copilot-setup-steps.yml
+tasks:
+  - id: restore
+    name: Restore packages
+    run: dotnet restore TechnitiumLibrary.sln
+  - id: test
+    name: Run unit tests
+    run: dotnet test TechnitiumLibrary.Tests/TechnitiumLibrary.Tests.csproj --configuration Release --no-restore --logger "trx;LogFileName=TestResults.trx"
+  - id: collect
+    name: Publish test results
+    run: echo "Test results at TestResults.trx"

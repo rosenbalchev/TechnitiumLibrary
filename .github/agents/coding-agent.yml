@@ -1,0 +1,14 @@
+name: coding-agent
+description: "Copilot coding agent for automated code changes (formatting, refactors, simple fixes)."
+runs_on: ubuntu-latest
+setup_steps_workflow: .github/workflows/copilot-setup-steps.yml
+tasks:
+  - id: format
+    name: Format code
+    run: dotnet tool restore && dotnet format TechnitiumLibrary.sln --verify-no-changes
+  - id: build
+    name: Build solution
+    run: dotnet restore TechnitiumLibrary.sln && dotnet build TechnitiumLibrary.sln --configuration Release
+  - id: lint
+    name: Run analyzers
+    run: dotnet build TechnitiumLibrary.sln -warnaserror
